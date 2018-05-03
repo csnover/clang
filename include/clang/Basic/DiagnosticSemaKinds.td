@@ -5960,7 +5960,35 @@ def warn_pointer_indirection_from_incompatible_type : Warning<
   InGroup<UndefinedReinterpretCast>, DefaultIgnore;
 def warn_taking_address_of_packed_member : Warning<
   "taking address of packed member %0 of class or structure %q1 may result in an unaligned pointer value">,
-  InGroup<DiagGroup<"address-of-packed-member">>;
+  InGroup<DiagGroup<"address-of-packed-member", [], [{
+Taking the address of a packed member of an object may result in slowness,
+hardware fault, loss of atomicity, or data corruption when the pointer is
+dereferenced [#]_ [#]_ [#]_ [#]_ [#]_.
+
+.. code-block:: c
+
+    struct Foo {
+      char a;
+      short b;
+    } __attribute__((packed));
+
+    void foo() {
+      Foo foo;
+      short *b = &foo.b;
+    }
+
+Option 1: Stop packing the object so member addresses are always properly
+aligned and can be safely pointed to.
+
+Option 2: Only access members through the object so the compiler can always
+generate safe code.
+
+.. [#] `Linux: Unaligned Memory Accesses <https://github.com/torvalds/linux/blob/master/Documentation/unaligned-memory-access.txt>`_
+.. [#] `UltraSPARC Architecture 2007 <https://www.oracle.com/technetwork/server-storage/sun-sparc-enterprise/documentation/sparc-arch-2007-2516668.pdf>`_ §6.3.1.1 Memory Alignment Restrictions
+.. [#] `Intel Itanium Architecture Developer’s Manual, Volume 2 <https://www.intel.com/content/www/us/en/processors/itanium/itanium-architecture-software-developer-rev-2-3-vol-2-manual.html>`_ §4.5 Memory Datum Alignment and Atomicity
+.. [#] `Intel 64 and IA-32 Architectures Developer’s Manual, Volume 3A <https://www.intel.com/content/www/us/en/architecture-and-technology/64-ia-32-architectures-software-developer-vol-3a-part-1-manual.html>`_ §8.1.1 Guaranteed Atomic Operations
+.. [#] `ARMv6-M Architecture Reference Manual <http://infocenter.arm.com/help/topic/com.arm.doc.ddi0419d/DDI0419D_armv6m_arm.pdf>`_ §A3.2 Alignment support
+}]>>;
 
 def err_objc_object_assignment : Error<
   "cannot assign to class object (%0 invalid)">;
