@@ -740,7 +740,15 @@ def Unsequenced : DiagGroup<"unsequenced">;
 def : DiagGroup<"sequence-point", [Unsequenced]>;
 
 // Preprocessor warnings.
-def AmbiguousMacro : DiagGroup<"ambiguous-macro">;
+def AmbiguousMacro : DiagGroup<"ambiguous-macro", [], [{
+Expansion of a macro which was defined by more than one imported module_ may
+cause the wrong definition to be used.
+
+Macro redefinition in programs not using modules is diagnosed by
+`-Wmacro-redefined`_.
+
+.. _module: Modules.html
+}]>;
 def KeywordAsMacro : DiagGroup<"keyword-macro">;
 def ReservedIdAsMacro : DiagGroup<"reserved-id-macro">;
 
