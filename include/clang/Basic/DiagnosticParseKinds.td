@@ -506,7 +506,52 @@ def err_misplaced_ellipsis_in_declaration : Error<
 def warn_misplaced_ellipsis_vararg : Warning<
   "'...' in this location creates a C-style varargs function"
   "%select{, not a function parameter pack|}0">,
-  InGroup<DiagGroup<"ambiguous-ellipsis">>;
+  InGroup<DiagGroup<"ambiguous-ellipsis", [], [{
+An ellipsis (``...``) in a parameter list may accidentally create a C-style
+`variadic function`_ instead of a `parameter pack expansion`_.
+
+.. code-block:: c++
+
+    template <typename ...T> void foo(T... n...);
+
+    template<typename ...T> void bar() {
+      bar([]{
+        void baz(T t...);
+        void qux(T (&t)...);
+      }...);
+    }
+
+Option 1: Put the ellipsis immediately after the parameter type to create a
+parameter pack extension:
+
+.. code-block:: c++
+
+    template <typename ...T> void foo(T ...n);
+
+    template<typename ...T> void bar() {
+      bar([]{
+        void baz(T ...t);
+        void qux(T (&...t));
+      });
+    }
+
+Option 2: Add a comma before the ellipsis at the end of the parameter list to
+create a C-style variadic function:
+
+.. code-block:: c++
+
+    template <typename ...T> void foo(T ...n, ...);
+
+    template<typename ...T> void bar() {
+      bar([]{
+        void baz(T t, ...);
+        void qux(T (&t), ...);
+      }...);
+    }
+
+.. _`variadic function`: https://en.cppreference.com/w/cpp/language/variadic_arguments
+.. _`parameter pack expansion`: https://en.cppreference.com/w/cpp/language/parameter_pack#Pack_expansion
+}]>>;
 def note_misplaced_ellipsis_vararg_existing_ellipsis : Note<
   "preceding '...' declares a function parameter pack">;
 def note_misplaced_ellipsis_vararg_add_ellipsis : Note<
