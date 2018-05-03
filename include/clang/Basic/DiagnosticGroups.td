@@ -73,7 +73,23 @@ receive a temporary object:
 }]>;
 
 def : DiagGroup<"aggregate-return">;
-def GNUAlignofExpression : DiagGroup<"gnu-alignof-expression">;
+
+def GNUAlignofExpression : DiagGroup<"gnu-alignof-expression", [], [{
+Passing an expression to the ``_Alignof`` operator is not valid in standard C.
+This program won’t compile in all conforming C compilers.
+
+.. code-block:: c
+
+    int foo;
+    alignof(foo);
+
+Pass a type instead:
+
+.. code-block:: c
+
+    alignof(int);
+}]>;
+
 def AmbigMemberTemplate : DiagGroup<"ambiguous-member-template">;
 def GNUAnonymousStruct : DiagGroup<"gnu-anonymous-struct">;
 def GNUAutoType : DiagGroup<"gnu-auto-type">;
