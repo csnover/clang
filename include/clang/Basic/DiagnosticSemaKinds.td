@@ -1833,7 +1833,39 @@ def err_reference_bind_init_list : Error<
 def warn_temporary_array_to_pointer_decay : Warning<
   "pointer is initialized by a temporary array, which will be destroyed at the "
   "end of the full-expression">,
-  InGroup<DiagGroup<"address-of-array-temporary">>;
+  InGroup<DiagGroup<"address-of-array-temporary", [], [{
+A pointer initialized to point to a temporary object is invalid by the end
+of the assignment expression. The pointed-to temporary object is `destroyed at
+the end of the expression`_. Dereferencing this pointer will trigger undefined
+behaviour.
+
+.. code-block:: c++
+
+    typedef int A[4];
+    struct B {
+      int b[4];
+    };
+    void foo() {
+      int *a = A{};
+      // a no longer points to a valid object
+      int *b = B().b;
+      // b no longer points to a valid object
+    }
+
+Point to an object with an appropriate storage duration:
+
+.. code-block:: c++
+
+    void foo() {
+      A a1;
+      int *a = a1;
+      B *b1 = new B();
+      int *b = b1->b;
+    }
+
+.. _`destroyed at the end of the expression`: https://en.cppreference.com/w/cpp/language/lifetime#Temporary_object_lifetime
+}]>>;
+
 def err_init_list_bad_dest_type : Error<
   "%select{|non-aggregate }0type %1 cannot be initialized with an initializer "
   "list">;
