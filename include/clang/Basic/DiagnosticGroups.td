@@ -345,7 +345,91 @@ def CXX2aCompatPedantic : DiagGroup<"c++2a-compat-pedantic",
 def ExitTimeDestructors : DiagGroup<"exit-time-destructors">;
 def FlexibleArrayExtensions : DiagGroup<"flexible-array-extensions">;
 def FourByteMultiChar : DiagGroup<"four-char-constants">;
-def GlobalConstructors : DiagGroup<"global-constructors">;
+
+def GlobalConstructors : DiagGroup<"global-constructors", [], [{
+A global (``static`` or ``thread_local`` `storage duration`_) object with a
+non-trivial constructor or destructor may cause hidden slowness or run in an
+unexpected order.
+
+.. code-block:: c++
+
+    struct Foo {
+      int a;
+      Foo() : a(0) {} // non-trivial constructor
+    };
+
+    Foo foo; // global object
+
+    int get_a() {
+      return foo.a;
+    }
+
+    int main() {
+      return get_a();
+    }
+
+Global constructors & destructors run implicitly when a process or thread is
+started or terminated. This is not visible by inspecting the normal control flow
+of a program, so may cause slowness which is hard to identify.
+
+Non-empty global destructors need to call ``__cxa_atexit`` [#]_ at startup, so
+also impact startup performance.
+
+The order of initialization of static objects is undefined across translation
+units, so constructors & destructors may execute in an unexpected order (the
+“`static initialization order fiasco`_”). Global constructors & destructors
+which access global objects from other translation units may cause crashes or
+data corruption.
+
+Option 1: Replace global objects using the `construct on first use idiom`_ or
+`nifty counter idiom`_ (construct on first use shown here):
+
+.. code-block:: c++
+
+    struct Foo {
+      int a;
+      Foo() : a(0) {}
+    };
+
+    Foo &foo() {
+      static Foo *foo = new Foo();
+      return *foo;
+    }
+
+    int get_a() {
+      return foo().a;
+    }
+
+    int main() {
+      return get_a();
+    }
+
+Option 2: Replace global objects with objects that are instantiated explicitly
+and passed to dependents:
+
+.. code-block:: c++
+
+    struct Foo {
+      int a;
+      Foo() : a(0) {}
+    };
+
+    int get_a(Foo const &foo) {
+      return foo.a;
+    }
+
+    int main() {
+      Foo foo;
+      return get_a(foo);
+    }
+
+.. [#] `[cfe-dev] -Wglobal-constructors warns on constexpr default constructor evaluated at compile-time? <https://lists.llvm.org/pipermail/cfe-dev/2018-January/056605.html>`_
+.. _`storage duration`: https://en.cppreference.com/w/cpp/language/storage_duration
+.. _`static initialization order fiasco`: https://isocpp.org/wiki/faq/ctors#static-init-order
+.. _`construct on first use idiom`: https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Construct_On_First_Use
+.. _`nifty counter idiom`: https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Nifty_Counter
+}]>;
+
 def BitwiseOpParentheses: DiagGroup<"bitwise-op-parentheses">;
 def LogicalOpParentheses: DiagGroup<"logical-op-parentheses">;
 def LogicalNotParentheses: DiagGroup<"logical-not-parentheses">;
