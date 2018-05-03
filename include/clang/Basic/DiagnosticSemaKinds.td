@@ -2709,7 +2709,25 @@ def err_cannot_find_suitable_accessor : Error<
 
 def warn_alloca_align_alignof : Warning<
   "second argument to __builtin_alloca_with_align is supposed to be in bits">,
-  InGroup<DiagGroup<"alloca-with-align-alignof">>;
+  InGroup<DiagGroup<"alloca-with-align-alignof", [], [{
+``_Alignof`` computes alignment in bytes but ``__builtin_alloca_with_align``
+expects alignment in bits. The value from ``_Alignof`` must be converted for
+correct alignment.
+
+.. code-block:: c
+
+   void foo() {
+     void *a = __builtin_alloca_with_align(sizeof(int), _Alignof(int));
+   }
+
+Multiply the result of ``_Alignof`` by ``CHAR_BIT``:
+
+.. code-block:: c
+
+   void foo() {
+     void *a = __builtin_alloca_with_align(sizeof(int), _Alignof(int) * CHAR_BIT);
+   }
+}]>>;
 
 def err_alignment_too_small : Error<
   "requested alignment must be %0 or greater">;
