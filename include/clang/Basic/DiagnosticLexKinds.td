@@ -622,7 +622,16 @@ def err_pp_eof_in_arc_cf_code_audited : Error<
 
 def warn_pp_date_time : Warning<
   "expansion of date or time macro is not reproducible">,
-  ShowInSystemHeader, DefaultIgnore, InGroup<DiagGroup<"date-time">>;
+  ShowInSystemHeader, DefaultIgnore, InGroup<DiagGroup<"date-time", [], [{
+Macros that use the current system time (``__DATE__``, ``__TIME__``,
+``__TIMESTAMP__``) make a build non-`reproducible`_ by changing the binary even
+when the same source code is used.
+
+Replace these macros with fixed values, like the date and time of a commit from
+a version control system, which will always be the same for a given codebase.
+
+.. _`reproducible`: https://en.wikipedia.org/wiki/Deterministic_compilation
+}]>>;
 
 // Module map parsing
 def err_mmap_unknown_token : Error<"skipping stray token">;
