@@ -7552,7 +7552,53 @@ def warn_initializer_out_of_order : Warning<
 def warn_abstract_vbase_init_ignored : Warning<
   "initializer for virtual base class %0 of abstract class %1 "
   "will never be used">,
-  InGroup<DiagGroup<"abstract-vbase-init">>, DefaultIgnore;
+  InGroup<DiagGroup<"abstract-vbase-init", [], [{
+An abstract class inherits from a virtual base class and tries to call a
+constructor on the virtual base class. Virtual base classes are initialized by
+the constructor of the *most* derived class, and an abstract class can *never*
+be the most derived class, so a call to a virtual base class constructor from an
+abstract class is always a no-op.
+
+.. code-block:: c++
+
+    struct Base { Base(int); };
+    struct Abstract : virtual Base {
+      Abstract() : Base(0) {} // Base(0) is always ignored
+      virtual void b() = 0;
+    };
+    struct Final : Abstract {
+      Final() : Abstract(), Base(0) {}
+      virtual void b() {}
+    };
+
+Option 1: Delete the call to the base class constructor from the abstract class
+constructor:
+
+.. code-block:: c++
+
+    struct Abstract : virtual Base {
+      Abstract() {}
+      virtual void b() = 0;
+    };
+
+Option 2: Make the intermediate class non-abstract:
+
+.. code-block:: c++
+
+    struct Abstract : virtual Base {
+      Abstract() : Base(0) {}
+      virtual void b() {}
+    };
+
+Option 3: Make the inheritance of the base class non-virtual:
+
+.. code-block:: c++
+
+    struct Abstract : Base {
+      Abstract() : Base(0) {}
+      virtual void b() = 0;
+    };
+  }]>>, DefaultIgnore;
 
 def err_base_init_does_not_name_class : Error<
   "constructor initializer %0 does not name a class">;
