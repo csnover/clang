@@ -468,7 +468,54 @@ Add braces around the correct if-then clause:
 .. _`dangling else`: https://en.wikipedia.org/wiki/Dangling_else
 }]>;
 
-def DanglingField : DiagGroup<"dangling-field">;
+def DanglingField : DiagGroup<"dangling-field", [], [{
+A reference or pointer member of an object is initialized using a temporary
+value which is does not exist once the constructor returns. Accessing this
+member outside of the constructor triggers undefined behaviour.
+
+.. code-block:: c++
+
+    struct Foo {
+      const int &a;
+      Foo() : a(0) {}
+    };
+
+    struct Bar {
+      int &b;
+      Bar(int b1) : b(b1) {}
+    };
+
+    struct Baz {
+      int *c;
+      Baz(int c1) : c(&c1) {}
+    };
+
+Option 1: Fix the constructor parameter’s type to be a reference or pointer type
+instead of a value type so no temporary copy is made:
+
+.. code-block:: c++
+
+    struct Bar {
+      int &b;
+      Bar(int &b1) : b(b1) {}
+    };
+
+    struct Baz {
+      int *c;
+      Baz(int &c1) : c(&c1) {}
+    };
+
+Option 2: Make the member’s type a value type instead of a reference or pointer
+type so the value is stored in the object:
+
+.. code-block:: c++
+
+    struct Foo {
+      int a;
+      Foo() : a(0) {}
+    };
+}]>;
+
 def DistributedObjectModifiers : DiagGroup<"distributed-object-modifiers">;
 def ExpansionToDefined : DiagGroup<"expansion-to-defined">;
 def FlagEnum : DiagGroup<"flag-enum">;
