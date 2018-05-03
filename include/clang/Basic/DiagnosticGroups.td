@@ -600,7 +600,24 @@ def NonVirtualDtor : DiagGroup<"non-virtual-dtor">;
 def NullPointerArithmetic : DiagGroup<"null-pointer-arithmetic">;
 def : DiagGroup<"effc++", [NonVirtualDtor]>;
 def OveralignedType : DiagGroup<"over-aligned">;
-def AlignedAllocationUnavailable : DiagGroup<"aligned-allocation-unavailable">;
+def AlignedAllocationUnavailable : DiagGroup<"aligned-allocation-unavailable", [], [{
+A ``new`` or ``delete`` expression generates a call to a C++17 aligned
+allocation/deallocation function. The function is unavailable in the standard
+library of the target platform, and no suitable alternative is defined in the
+translation unit. This program will not run on the target.
+
+This problem exists when targeting Apple macOS version 10.12 and lower, iOS/tvOS
+10 and lower, and watchOS 3 and lower.
+
+Option 1: Disable C++17 aligned allocation functions when compiling for this
+target.
+
+Option 2: Add suitable user-defined allocation functions to the translation
+unit.
+
+Option 3: Add suitable user-defined allocation functions which can be resolved
+by the linker and compile with ``-Wno-aligned-allocation-unavailable``.
+}]>;
 def OldStyleCast : DiagGroup<"old-style-cast">;
 def : DiagGroup<"old-style-definition">;
 def OutOfLineDeclaration : DiagGroup<"out-of-line-declaration">;
