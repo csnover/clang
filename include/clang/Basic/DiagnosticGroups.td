@@ -435,7 +435,39 @@ def LogicalOpParentheses: DiagGroup<"logical-op-parentheses">;
 def LogicalNotParentheses: DiagGroup<"logical-not-parentheses">;
 def ShiftOpParentheses: DiagGroup<"shift-op-parentheses">;
 def OverloadedShiftOpParentheses: DiagGroup<"overloaded-shift-op-parentheses">;
-def DanglingElse: DiagGroup<"dangling-else">;
+def DanglingElse: DiagGroup<"dangling-else", [], [{
+A conditional statement contains an ambiguous `dangling else`_. The else-clause
+may be applied to the wrong statement.
+
+.. code-block:: c
+
+    if (foo)
+      if (bar)
+        1;
+    else // this else-clause actually belongs to `if (bar)`
+      2;
+
+Add braces around the correct if-then clause:
+
+.. code-block:: c
+
+    if (foo) {
+      if (bar)
+        1;
+    } else
+      2;
+
+    // or
+    if (foo) {
+      if (bar)
+        1;
+      else
+        2;
+    }
+
+.. _`dangling else`: https://en.wikipedia.org/wiki/Dangling_else
+}]>;
+
 def DanglingField : DiagGroup<"dangling-field">;
 def DistributedObjectModifiers : DiagGroup<"distributed-object-modifiers">;
 def ExpansionToDefined : DiagGroup<"expansion-to-defined">;
