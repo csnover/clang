@@ -166,7 +166,26 @@ def MissingNoEscape : DiagGroup<"missing-noescape">;
 
 def DeleteIncomplete : DiagGroup<"delete-incomplete">;
 def DeleteNonVirtualDtor : DiagGroup<"delete-non-virtual-dtor">;
-def AbstractFinalClass : DiagGroup<"abstract-final-class">;
+def AbstractFinalClass : DiagGroup<"abstract-final-class", [], [{
+An abstract class marked with `final`_ or `sealed`_ is unusable. Abstract
+classes must be extendable.
+
+.. code-block:: c++
+
+    class Foo final {
+      virtual void foo() = 0;
+    };
+
+Option 1: Delete the ``final`` keyword.
+
+Option 2: Delete or implement all unimplemented virtual functions so the class
+is no longer abstract.
+
+Option 3: Delete the unused class entirely.
+
+.. _`final`: https://en.cppreference.com/w/cpp/language/final
+.. _`sealed`: https://docs.microsoft.com/en-us/cpp/windows/sealed-cpp-component-extensions
+}]>;
 
 def CXX11CompatDeprecatedWritableStr :
   DiagGroup<"c++11-compat-deprecated-writable-strings">;
