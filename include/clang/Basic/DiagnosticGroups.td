@@ -18,7 +18,26 @@ def Implicit : DiagGroup<"implicit", [
 
 // Empty DiagGroups are recognized by clang but ignored.
 def : DiagGroup<"abi">;
-def AbsoluteValue : DiagGroup<"absolute-value">;
+
+def AbsoluteValue : DiagGroup<"absolute-value", [], [{
+A suspicious call to an absolute value function from the standard library may
+cause slowness or data corruption.
+
+.. code-block:: c
+
+    unsigned a = 0;
+    a = abs(a); // unnecessary call or wrong type (unsigned values are always positive)
+
+    float b = -1.1f;
+    b = abs(b); // implicit conversion to integer loses precision
+
+    long long c = -34359738368LL;
+    c = abs(c); // implicit conversion to int truncates value
+
+    int *d = find_d();
+    *d = abs(d); // wrong value used for calculation (should be `abs(*d)`)
+}]>;
+
 def AddressOfTemporary : DiagGroup<"address-of-temporary">;
 def : DiagGroup<"aggregate-return">;
 def GNUAlignofExpression : DiagGroup<"gnu-alignof-expression">;
