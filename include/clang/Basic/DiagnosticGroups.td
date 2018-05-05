@@ -90,7 +90,60 @@ Pass a type instead:
     alignof(int);
 }]>;
 
-def AmbigMemberTemplate : DiagGroup<"ambiguous-member-template">;
+def AmbigMemberTemplate : DiagGroup<"ambiguous-member-template", [], [{
+An object has a templated member with the same name as a class template in the
+caller’s lexical scope, and the member template is instantiated with explicit
+template arguments. This results in an ambiguous lookup in C++03 and earlier,
+which means the program is ill-formed. This program won’t compile in all
+conforming C++ compilers.
+
+TODO: Explain more clearly the name lookup rule from C++03 so it is clearer why
+this is ambiguous.
+
+.. code-block:: c++
+
+    template <typename T>
+    struct foo {};
+
+    struct bar {
+      template <typename T>
+      void foo(T value) {}
+    };
+
+    void baz() {
+      bar b;
+      b.foo<int>(0); // ambiguous; `foo<int>` could be member template or class template
+    }
+
+Option 1: Compile `for C++11 or later`_, where the lookup is unambiguous and
+well-formed.
+
+Option 2: Allow the type to be inferred from the argument so the name lookup
+cannot match the templated class:
+
+.. code-block:: c++
+
+    void baz() {
+      bar b;
+      b.foo(0);
+    }
+
+Option 3: Rename the conflicting templates:
+
+.. code-block:: c++
+
+    template <typename T>
+    struct qux {};
+
+    // or
+
+    struct bar {
+      template <typename T>
+      void qux(T value) {}
+    };
+
+.. _`for C++11 or later`: ClangCommandLineReference.html#cmdoption-clang-std
+}]>;
 def GNUAnonymousStruct : DiagGroup<"gnu-anonymous-struct">;
 def GNUAutoType : DiagGroup<"gnu-auto-type">;
 def ArrayBounds : DiagGroup<"array-bounds">;
