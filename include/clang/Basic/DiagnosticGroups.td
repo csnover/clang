@@ -38,7 +38,40 @@ cause slowness or data corruption.
     *d = abs(d); // wrong value used for calculation (should be `abs(*d)`)
 }]>;
 
-def AddressOfTemporary : DiagGroup<"address-of-temporary">;
+def AddressOfTemporary : DiagGroup<"address-of-temporary", [], [{
+Taking the address of a non-`lvalue`_ is not valid in standard C++. This program
+won’t compile in all conforming C++ compilers.
+
+.. code-block:: c++
+
+    struct Foo {};
+    void bar(Foo *);
+    void foo() {
+      bar(&Foo() /* ill-formed */);
+    }
+
+Option 1: Create an object on the stack and point to that instead:
+
+.. code-block:: c++
+
+    void foo() {
+      Foo foo;
+      bar(&foo);
+    }
+
+Option 2: Change the callee to receive a const reference instead, which can
+receive a temporary object:
+
+.. code-block:: c++
+
+    void bar(Foo const &);
+    void foo() {
+      bar(Foo());
+    }
+
+.. _`lvalue`: https://en.cppreference.com/w/cpp/language/value_category#lvalue
+}]>;
+
 def : DiagGroup<"aggregate-return">;
 def GNUAlignofExpression : DiagGroup<"gnu-alignof-expression">;
 def AmbigMemberTemplate : DiagGroup<"ambiguous-member-template">;
