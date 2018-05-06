@@ -1149,7 +1149,13 @@ def Consumed       : DiagGroup<"consumed">;
 def All : DiagGroup<"all", [Most, Parentheses, Switch, SwitchBool]>;
 
 // Warnings that should be in clang-cl /w4.
-def : DiagGroup<"CL4", [All, Extra]>;
+def : DiagGroup<"CL4", [All, Extra], [{
+For compatibility with the Microsoft C/C++ Compiler’s `/W4`_ flag when using
+`clang-cl`_.
+
+.. _`/W4`: https://docs.microsoft.com/en-us/cpp/build/reference/compiler-option-warning-level
+.. _`clang-cl`: UsersManual.html#clang-cl
+}]>;
 
 // Warnings enabled by -pedantic.  This is magically filled in by TableGen.
 def Pedantic : DiagGroup<"pedantic">;
