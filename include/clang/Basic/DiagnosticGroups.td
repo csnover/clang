@@ -168,7 +168,53 @@ Change the index so that it is in range for the array:
 
 .. _UndefinedBehaviorSanitizer: UndefinedBehaviorSanitizer.html
 }]>;
-def ArrayBoundsPointerArithmetic : DiagGroup<"array-bounds-pointer-arithmetic">;
+def ArrayBoundsPointerArithmetic : DiagGroup<"array-bounds-pointer-arithmetic", [], [{
+An out-of-bounds constant value is used when performing pointer arithmetic on a
+`decayed array pointer`_. This will trigger undefined behaviour.
+
+.. code-block:: c++
+
+  const char foo[] = "Guru Meditation";
+  foo + (sizeof(foo) + 1);
+  foo - 1;
+
+A diagnostic is not issued for a pointer at the end of an array because this is
+legal so long as it is not dereferenced:
+
+.. code-block:: c++
+
+    foo + sizeof(foo); // OK; only dereferencing is illegal
+
+A diagnostic is not issued for non-array lvalues:
+
+.. code-block:: c++
+
+    const char *bar = foo;
+    bar - 1; // No diagnostic
+
+A diagnostic is not issued for equations where the array decays to a pointer
+before it becomes out-of-bounds:
+
+.. code-block:: c++
+
+    foo + sizeof(foo) + 1; // No diagnostic since this is `(foo + sizeof(foo)) + 1`
+
+A diagnostic is not issued for non-constant values. Use `AddressSanitizer`_ or
+``-fsanitize=pointer-overflow`` from `UndefinedBehaviorSanitizer`_ to detect
+out-of-bounds values at runtime.
+
+Change the index so that it is in range for the array:
+
+.. code-block:: c++
+
+  const char foo[] = "Guru Meditation";
+  foo + sizeof(foo);
+  foo;
+
+.. _`decayed array pointer`: https://en.cppreference.com/w/cpp/language/array#Array-to-pointer_decay
+.. _AddressSanitizer: AddressSanitizer.html
+.. _UndefinedBehaviorSanitizer: UndefinedBehaviorSanitizer.html
+}]>;
 def AutoDisableVptrSanitizer : DiagGroup<"auto-disable-vptr-sanitizer">;
 def Availability : DiagGroup<"availability">;
 def Section : DiagGroup<"section">;
