@@ -709,7 +709,15 @@ def ReturnStdMoveInCXX11 : DiagGroup<"return-std-move-in-c++11">;
 def ReturnStdMove : DiagGroup<"return-std-move">;
 
 def PointerArith : DiagGroup<"pointer-arith">;
-def PoundWarning : DiagGroup<"#warnings">;
+def PoundWarning : DiagGroup<"#warnings", [], [{
+``#warning`` preprocessor directives emit a user-defined warning. This is a
+non-standard GNU extension which is not supported by all conforming C/C++
+preprocessors.
+
+.. code-block:: c
+
+    #warning lp0 on fire
+}]>;
 def PoundPragmaMessage : DiagGroup<"#pragma-messages">,
                          DiagCategory<"#pragma message Directive">;
 def : DiagGroup<"pointer-to-int-cast">;
