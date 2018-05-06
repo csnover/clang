@@ -146,7 +146,28 @@ Option 3: Rename the conflicting templates:
 }]>;
 def GNUAnonymousStruct : DiagGroup<"gnu-anonymous-struct">;
 def GNUAutoType : DiagGroup<"gnu-auto-type">;
-def ArrayBounds : DiagGroup<"array-bounds">;
+def ArrayBounds : DiagGroup<"array-bounds", [], [{
+An out-of-bounds constant value is used as an index into an array. This will
+trigger undefined behaviour.
+
+.. code-block:: c++
+
+    int x[2];
+    x[sizeof(x) / sizeof(x[0])];
+    x[-1];
+
+A diagnostic is not issued for non-constant values. Use ``-fsanitize=bounds``
+from `UndefinedBehaviorSanitizer`_ to detect out-of-bounds values at runtime.
+
+Change the index so that it is in range for the array:
+
+.. code-block:: c++
+
+    x[sizeof(x) / sizeof(x[0]) - 1];
+    x[0];
+
+.. _UndefinedBehaviorSanitizer: UndefinedBehaviorSanitizer.html
+}]>;
 def ArrayBoundsPointerArithmetic : DiagGroup<"array-bounds-pointer-arithmetic">;
 def AutoDisableVptrSanitizer : DiagGroup<"auto-disable-vptr-sanitizer">;
 def Availability : DiagGroup<"availability">;
