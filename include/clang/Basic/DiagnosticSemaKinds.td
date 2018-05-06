@@ -8147,7 +8147,21 @@ def err_cfstring_literal_not_string_constant : Error<
 def warn_cfstring_truncated : Warning<
   "input conversion stopped due to an input byte that does not "
   "belong to the input codeset UTF-8">,
-  InGroup<DiagGroup<"CFString-literal">>;
+  InGroup<DiagGroup<"CFString-literal", [], [{
+Creating a ``CFString`` using a string literal with a non–UTF-8 byte will cause
+the string to be truncated at the non–UTF-8 byte.
+
+.. code-block:: obj-c
+
+  CFSTR("foo \243 bar"); // creates a CFString "foo "
+
+Convert the string literal to UTF-8:
+
+.. code-block:: obj-c
+
+  CFSTR("foo \u2260 bar"); // creates a CFString "foo ≠ bar"
+
+  }]>>;
 
 // os_log checking
 // TODO: separate diagnostic for os_trace()
