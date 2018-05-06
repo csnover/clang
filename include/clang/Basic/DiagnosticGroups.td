@@ -719,7 +719,17 @@ preprocessors.
     #warning lp0 on fire
 }]>;
 def PoundPragmaMessage : DiagGroup<"#pragma-messages">,
-                         DiagCategory<"#pragma message Directive">;
+                         DiagCategory<"#pragma message Directive"> {
+  let Documentation = [{
+``#pragma message(string)`` preprocessor directives emit a user-defined warning.
+This is a non-standard MS extension which is not supported by all conforming
+C/C++ preprocessors.
+
+.. code-block:: c
+
+    #pragma message("In file " __FILE__)
+}];
+}
 def : DiagGroup<"pointer-to-int-cast">;
 def : DiagGroup<"redundant-decls">;
 def RedeclaredClassMember : DiagGroup<"redeclared-class-member">;
