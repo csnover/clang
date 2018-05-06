@@ -561,7 +561,27 @@ def note_misplaced_ellipsis_vararg_add_comma : Note<
   "insert ',' before '...' to silence this warning">;
 def ext_abstract_pack_declarator_parens : ExtWarn<
   "ISO C++11 requires a parenthesized pack declaration to have a name">,
-  InGroup<DiagGroup<"anonymous-pack-parens">>;
+  InGroup<DiagGroup<"anonymous-pack-parens", [], [{
+A parenthesized pack declaration without a name is not valid in standard C++.
+This program will not compile in all conformant C++ compilers.
+
+.. code-block:: c++
+
+    template <void(*...)()> struct Foo {};
+
+    template <typename ...Ts, int ...N>
+    void bar(Ts (&...)[N]) {}
+
+Name the parenthesized pack declaration:
+
+.. code-block:: c++
+
+    template <void(*...Functions)()> struct Foo {};
+
+    template <typename ...Ts, int ...N>
+    void bar(Ts (&...arrays)[N]) {}
+
+}]>>;
 def err_function_is_not_record : Error<
   "unexpected %0 in function call; perhaps remove the %0?">;
 def err_super_in_using_declaration : Error<
